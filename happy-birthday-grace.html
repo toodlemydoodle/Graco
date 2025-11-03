@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>🎉 Happy Birthday Grace!</title>
+  <style>
+    :root{ --bg1:#0f1020; --bg2:#1d0440; --bg3:#29085f; --text:#f8f8ff; --card:#ffffff10; --card-border:#ffffff30; }
+    body{ margin:0; height:100dvh; display:grid; place-items:center; color:var(--text); font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; background: radial-gradient(1200px 800px at 10% 10%, var(--bg3), transparent), radial-gradient(900px 600px at 90% 20%, var(--bg2), transparent), radial-gradient(1000px 700px at 50% 90%, var(--bg1), transparent), linear-gradient(120deg, #0b1024, #0a0f1f); overflow:hidden; }
+    .card{ width:min(880px,92vw); backdrop-filter: blur(12px) saturate(120%); background: linear-gradient(180deg,#ffffff18,#ffffff08); border:1px solid var(--card-border); border-radius:28px; padding:28px; box-shadow:0 20px 60px #0008; position:relative; }
+    h1{ margin:0 0 8px; font-size:clamp(28px,5vw,56px); }
+    p{ margin:.25rem 0 0; opacity:.9 }
+    footer{ opacity:.75; font-size:12px; margin-top:14px }
+    /* Tap overlay */
+    #overlay{ position:fixed; inset:0; display:grid; place-items:center; background:rgba(10,10,18,.6); backdrop-filter: blur(4px); color:#fff; z-index:10; transition:opacity .25s ease; }
+    #overlay.hidden{ opacity:0; pointer-events:none; }
+    .bubble{ text-align:center; padding:16px 20px; background:#ffffff10; border:1px solid #ffffff30; border-radius:16px; font-size:clamp(16px,3.2vw,20px); box-shadow:0 12px 36px #0008 }
+    .hint{ font-size:12px; opacity:.85; margin-top:6px }
+    .pulse{ animation:pulse 1.3s infinite ease-in-out; display:inline-block }
+    @keyframes pulse{ 0%,100%{ transform:scale(1)} 50%{ transform:scale(1.06)} }
+  </style>
+</head>
+<body>
+  <!-- One-time tap/click overlay to satisfy mobile autoplay policies -->
+  <div id="overlay">
+    <div class="bubble">
+      <div class="pulse">Tap anywhere to start the music 🎶</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h1>🎉 Happy Birthday, Grace!</h1>
+    <p>Wishing you joy, health, and adventures ahead.</p>
+  </div>
+
+  <!-- Hidden audio element that will play in the background after the first user gesture -->
+  <audio id="customSong" src="song1.mp3" preload="auto" loop></audio>
+
+  <script>
+    // Mobile-safe background playback after first user interaction
+    (function(){
+      const audio = document.getElementById('customSong');
+      const overlay = document.getElementById('overlay');
+      let started = false;
+
+      function startAudio(){
+        if(started) return; started = true;
+        // Gentle volume by default; adjust if you like.
+        audio.volume = 0.6;
+        const playPromise = audio.play();
+        if(playPromise && typeof playPromise.then === 'function'){
+          playPromise.then(()=>{ overlay.classList.add('hidden'); })
+          .catch(err=>{
+            // If autoplay still blocked, show a small hint and expose controls as fallback
+            console.warn('Autoplay blocked:', err);
+            overlay.querySelector('.hint').textContent = 'Tap again to allow audio.';
+            audio.controls = true; // fallback so the user can press play
+          });
+        } else {
+          overlay.classList.add('hidden');
+        }
+      }
+
+      // Use a capture of the first gesture: pointerdown works for both mouse and touch
+      const startEvents = ['pointerdown','touchstart','click','keydown'];
+      startEvents.forEach(ev => document.addEventListener(ev, startAudio, { once:true, passive:true }));
+
+      // Try to resume if the page regains focus (some browsers pause in background)
+      document.addEventListener('visibilitychange', ()=>{
+        if(!document.hidden && started && audio.paused){ audio.play().catch(()=>{}); }
+      });
+    })();
+  </script>
+</body>
+</html>
